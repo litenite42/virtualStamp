@@ -1,0 +1,7 @@
+*.exe
+*-stamped
+*.o
+*.sh
+stamp
+eight.v-*
+hello.v-*
