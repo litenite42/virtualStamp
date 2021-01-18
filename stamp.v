@@ -137,8 +137,7 @@ fn main() {
 		if file_name.ends_with('_') {
 			mut temp_path := os.getwd()
 			if file_name.contains('/') || file_name.contains('\\') {
-				desired_path_arr := file_name.split('/')
-				temp_path = os.join_path(temp_path, desired_path_arr[0])
+				temp_path = os.join_path(temp_path, os.dir(file_name) )
 			}
 			wd_files := os.ls(temp_path) or {
 				panic('Something went wrong trying to read: $os.getwd()')
