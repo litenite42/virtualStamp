@@ -10,15 +10,17 @@ Motivated for inserting copyright/header text into source code after the fact.
   <dt>-i, --input <string></dt>
   <dd>
   File holding the destination text  
-  
+
   * use the discard '_.ext' to represent all files with extension 'ext'
   </dd>
   <dt>-s, --stamp <string></dt>
   <dd>File holding the "stamp" text [Default = "stamp.file"]</dd>
  <dt>-f, --suffix <string></dt>
  <dd>Text added to end of output file name and extension; i.e filename.extension-suffix [Default = "stamped"]</dd>
- <dt>-l, --line <int></td>
+ <dt>-l, --line <int></dt>
  <dd>Line where the text from the stamp file will be inserted. [Default = 0]</dd>
+ <dt>-w, --overwrite</dt>
+ <dd>Overwrite the input file(s); instead of, creating a separate stamped file.</dd>
 </dl>  
 
 

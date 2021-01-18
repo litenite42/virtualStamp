@@ -8,7 +8,7 @@ enum FieldType {
 	int
 }
 
-type FlagType = int | string
+type FlagType = int | string | bool
 
 struct Command {
 mut:
@@ -32,7 +32,14 @@ struct StringCommandConfig {
 	description string
 }
 
-type CommandConfig = IntCommandConfig | StringCommandConfig
+struct BoolCommandConfig {
+	name string
+	suffix byte = `w`
+	default bool = false
+	description string
+}
+
+type CommandConfig = IntCommandConfig | StringCommandConfig | BoolCommandConfig
 
 fn new_command(c CommandConfig) &Command {
 	mut command := &Command{}
@@ -49,6 +56,12 @@ fn new_command(c CommandConfig) &Command {
 			command.default = c.default
 			command.description = c.description
 		}
+		BoolCommandConfig {
+			command.name = c.name
+			command.suffix = c.suffix
+			command.default = c.default
+			command.description = c.description
+		}
 	}
 	return command
 }
@@ -58,6 +71,7 @@ fn new_flag(mut fp flag.FlagParser, c Command) FlagType {
 	match x {
 		string { return fp.string(c.name, c.suffix, x, c.description) }
 		int { return fp.int(c.name, c.suffix, x, c.description) }
+		bool { return fp.bool(c.name, c.suffix, x, c.description) }
 	}
 }
 
@@ -74,6 +88,14 @@ fn (c Command) new_string(mut fp flag.FlagParser) string {
 	match x {
 		string { return x }
 		else { return '' }
+	}
+}
+
+fn (c Command) new_bool(mut fp flag.FlagParser) bool {
+	x := new_flag(mut fp, c)
+	match x {
+		bool { return x }
+		else { return false }
 	}
 }
 
@@ -109,6 +131,12 @@ const (
 			default: 0
 			description: 'Line where the text from the stamp file will be inserted. [Default = 0]'
 		})
+		'overwrite': new_command(&BoolCommandConfig{
+			name: 'overwrite'
+			suffix: `w`
+			default: true
+			description: 'Overwrite the input file(s); instead of, creating a separate stamped file.'
+			})
 	}
 )
 
@@ -127,6 +155,7 @@ fn main() {
 	stamp_file := commands['stamp'].new_string(mut fp)
 	stamp_suffix := commands['suffix'].new_string(mut fp)
 	position := commands['line'].new_int(mut fp)
+	overwrite := commands['overwrite'].new_bool(mut fp)
 	help := fp.string('help', `h`, '', 'This help text')
 	if input_file.len > 0 {
 		mut stamp_text := os.read_file(stamp_file) or {
@@ -149,7 +178,9 @@ fn main() {
 					}
 					temp.insert(position, stamp_text)
 					lines := temp.join('\n')
-					path := os.join_path(temp_path, '$file-$stamp_suffix')
+				//	path := os.join_path(temp_path, '$file-$stamp_suffix')
+					output_file := file + if !overwrite { '-$stamp_suffix' } else { '' }
+					path := os.join_path(temp_path, output_file)
 					os.write_file(path, lines)
 				}
 			}
@@ -159,7 +190,8 @@ fn main() {
 			}
 			temp.insert(position, stamp_text)
 			lines := temp.join('\n')
-			os.write_file('$input_file-$stamp_suffix', lines)
+			output_file := input_file + if !overwrite { '-$stamp_suffix' } else { '' }
+			os.write_file(output_file, lines)
 		}
 	}
 	if help in commands {
